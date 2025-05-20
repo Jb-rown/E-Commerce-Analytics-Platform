@@ -90,4 +90,6 @@ CREATE TABLE inventory_log (
     changed_by VARCHAR(50),
     FOREIGN KEY (product_id) REFERENCES products(product_id),
     INDEX idx_product_date (product_id, changed_at)
+
 );
+--
