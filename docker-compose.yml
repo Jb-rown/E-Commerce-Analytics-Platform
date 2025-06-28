@@ -1,0 +1,62 @@
+# docker-compose.yml
+version: '3'
+services:
+  airflow-webserver:
+    image: apache/airflow:2.3.0
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+      - AIRFLOW__CORE__FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
+      - AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION=true
+      - AIRFLOW__CORE__LOAD_EXAMPLES=false
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    restart: always
+
+  postgres:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflow
+      - POSTGRES_DB=airflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-db-volume:/var/lib/postgresql/data
+
+  mysql-source:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_DATABASE=ecommerce_transactions
+      - MYSQL_USER=etl_user
+      - MYSQL_PASSWORD=etl_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql-init:/docker-entrypoint-initdb.d
+      - mysql-data-volume:/var/lib/mysql
+
+  mysql-dw:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_DATABASE=ecommerce_dw
+      - MYSQL_USER=etl_user
+      - MYSQL_PASSWORD=etl_password
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./mysql-dw-init:/docker-entrypoint-initdb.d
+      - mysql-dw-data-volume:/var/lib/mysql
+
+volumes:
+  postgres-db-volume:
+  mysql-data-volume:
+  mysql-dw-data-volume:
